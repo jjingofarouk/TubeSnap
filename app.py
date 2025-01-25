@@ -12,23 +12,34 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 def home():
     if request.method == "POST":
         url = request.form.get("url")
-        quality = int(request.form.get("quality", 720))
+        quality = request.form.get("quality")
 
-        if quality < 144:
-            quality = 720
+        if not url:
+            return "Please enter a valid YouTube URL.", 400
 
-        ydl_opts = {
-            'format': f'best[height<={quality}]',
-            'outtmpl': f'{DOWNLOAD_FOLDER}/%(title)s.%(ext)s',
-            'ignoreerrors': True,
-        }
+        try:
+            quality = int(quality) if quality else 720
+            if quality < 144:
+                quality = 720
 
-        with yt.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            file_path = ydl.prepare_filename(info)
-            ydl.download([url])
+            ydl_opts = {
+                'format': f'best[height<={quality}]',
+                'outtmpl': f'{DOWNLOAD_FOLDER}/%(title)s.%(ext)s',
+                'ignoreerrors': True,
+            }
 
-        return send_file(file_path, as_attachment=True)
+            with yt.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                file_path = ydl.prepare_filename(info)
+                ydl.download([url])
+
+                if os.path.exists(file_path):
+                    return send_file(file_path, as_attachment=True)
+                else:
+                    return "Failed to download the video. Please try again.", 500
+
+        except Exception as e:
+            return f"An error occurred: {str(e)}", 500
 
     return render_template("index.html")
 
