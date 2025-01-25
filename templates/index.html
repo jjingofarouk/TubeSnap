@@ -228,12 +228,11 @@
 </head>
 <body>
     <div class="container">
-        <!-- Logo -->
-
         <h1><i class="fas fa-download"></i> TubeSnap - YouTube Downloader</h1>
         <p class="subtitle">Download your favorite YouTube videos and audio in high quality. Fast, free, and easy to use!</p>
         
-        <form id="downloadForm">
+        <!-- Form for URL and Quality -->
+        <form id="downloadForm" action="/" method="POST">
             <div class="form-group">
                 <input type="text" name="url" id="url" placeholder="Enter YouTube URL" required>
             </div>
@@ -256,12 +255,14 @@
             <i class="fas fa-spinner fa-spin"></i> Downloading your file...
         </div>
 
+        <!-- Buy Me a Coffee -->
         <div class="buy-me-coffee">
             <a href="https://www.buymeacoffee.com/jjingofarouk" target="_blank">
                 <i class="fas fa-coffee"></i> Buy Me a Coffee
             </a>
         </div>
 
+        <!-- Features Section -->
         <div class="features">
             <div class="feature">
                 <i class="fas fa-tachometer-alt"></i>
@@ -280,6 +281,7 @@
             </div>
         </div>
 
+        <!-- Footer -->
         <footer>
             <p>Made with <i class="fas fa-heart" style="color: var(--primary-color);"></i> by <a href="https://github.com/jjingofarouk" target="_blank" style="color: var(--primary-color);">jjingofarouk</a></p>
         </footer>
@@ -293,10 +295,30 @@
             const downloadMessage = document.getElementById('downloadMessage');
             downloadMessage.style.display = 'block';
 
-            // Simulate a download process (replace this with your actual download logic)
-            setTimeout(() => {
+            // Submit the form data to the Flask backend
+            const formData = new FormData(this);
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // Create a link to download the file
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'video.mp4'; // Default filename
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Update the download message
                 downloadMessage.innerHTML = '<i class="fas fa-check"></i> Download complete!';
-            }, 3000); // Simulate a 3-second download process
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                downloadMessage.innerHTML = '<i class="fas fa-times"></i> Download failed. Please try again.';
+            });
         });
     </script>
 </body>
